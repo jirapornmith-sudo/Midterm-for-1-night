@@ -1,0 +1,112 @@
+#(1)
+###เพิ่มพรรคการเมือง
+POST http://127.0.0.1:8000/parties/
+
+{ 
+    "party_name": "พรรคม้าบิน",
+    "party_leader": "นายไก่ชนก ชัยศิริ",
+    "party_logo_url": "https://example.com/logo.png"
+}
+###เพิ่มผู้สมัครสสเขตใหม่
+POST http://127.0.0.1:8000/candidates/
+
+{
+  "const_id": 2,
+  "party_id": 4,
+  "candidate_number": "7",
+  "full_name": "นายไก่ชนก ชัยศิริ"
+}
+
+###get all:แสดงรายชื่อพรรคการเมือง ผู้สมัครสสเขต & รายละเอียดเขตเลือกตั้ง
+GET http://127.0.0.1:8000/overview/
+
+#(2)
+###เพิ่มผู้มีสิทธิเลือกตั้ง
+POST http://127.0.0.1:8000/voters/
+
+{ 
+    "voter_id": "1234567890123",
+    "full_name": "หวังดี มีสิทธิ์",
+    "has_voted_constituency": 0,
+    "has_voted_list": 0
+}   
+
+### get all:แสดงรายชื่อผู้มีสิทธิเลือกตั้ง
+GET http://127.0.0.1:8000/voters/
+
+### อัพเดสถานะโหวตแบบเขต (constituency)
+PUT http://127.0.0.1:8000/voters/1/vote?vote_type=const
+
+{
+    "candidate_id": 1,
+    "party_id": null
+}
+### อัพเดสถานะโหวตแบบบัญชีรายชื่อ (party-list)
+PUT http://127.0.0.1:8000/voters/1/vote?vote_type=list
+
+{
+    "candidate_id": null,
+    "party_id": 4
+}
+
+#(3)
+###getรายชื่อผู้มีสิทธิเลือกตั้ง เพื่อเอาcitizen_idของผู้มีสิทธิเลือกตั้งก่อน
+GET http://127.0.0.1:8000/voters/
+
+### บันทึกการลงคะแนนรายบุคคลแบบไม่ระบุตัวตน 
+### กรณีปกติ — โหวตเขต (คนที่ยังไม่เคยโหวต)
+POST http://127.0.0.1:8000/votes/
+
+{
+    "voter_id": 1100100000009,
+    "vote_type": "constituency",
+    "candidate_id": 1
+}
+
+### กรณีปกติ — โหวตบัญชีรายชื่อ
+POST http://127.0.0.1:8000/votes/
+
+{
+    "voter_id": 1100100000009,
+    "vote_type": "party-list",
+    "party_id": 2
+}
+
+### กรณี Error — โหวตซ้ำ (คนนี้โหวตเขตไปแล้วจาก seed)
+POST http://127.0.0.1:8000/votes/
+
+{
+    "voter_id": 1100100000001,
+    "vote_type": "constituency",
+    "candidate_id": 1
+}
+
+### กรณี Error — candidate ไม่ได้อยู่ในเขตของ voter
+POST http://127.0.0.1:8000/votes/
+
+{
+    "voter_id": 1100100000010,
+    "vote_type": "constituency",
+    "candidate_id": 4
+}
+
+### จำนวนผู้มาใช้สิทธิเลือกตั้งแยกตามเขตเลือกตั้งแบบพรรคการเมือง
+GET http://127.0.0.1:8000/votes/constituency/voter-count-by-party/
+### จำนวนผู้มาใช้สิทธิเลือกตั้งแยกตามเขตเลือกตั้งแบบบัญชีรายชื่อ
+GET http://127.0.0.1:8000/votes/constituency/voter-count-by-constituency/
+
+#(4)
+### แสดงผลการเลือกตั้งแบบพรรคการเมือง (คะแนนเขต + บัญชี + total รวม)
+GET http://127.0.0.1:8000/votes/party/
+
+### แสดงผลการนับคะแนนแบบบัญชีรายชื่อ
+GET http://127.0.0.1:8000/votes/party-list/
+
+### แสดงผลการเลือกตั้งแบบผู้สมัครสสเขต
+GET http://127.0.0.1:8000/votes/candidates/
+
+### ดูคะแนนเขต 1
+GET http://127.0.0.1:8000/votes/constituency/1/
+
+### ดูคะแนนเขต 2
+GET http://127.0.0.1:8000/votes/constituency/2/
